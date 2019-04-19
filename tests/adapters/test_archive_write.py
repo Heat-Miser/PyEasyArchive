@@ -102,3 +102,56 @@ class TestArchiveWrite(unittest.TestCase):
             ]
 
             self.assertEquals(actual, expected)
+
+
+    def test_create_file_with_passphrase_traditional(self):
+        self._create_file_with_passphrase("traditional")
+
+
+    def test_create_file_with_passphrase_aes128(self):
+        self._create_file_with_passphrase("aes128")
+
+
+    def test_create_file_with_passphrase_aes256(self):
+        self._create_file_with_passphrase("aes256")
+
+
+    def _create_file_with_passphrase(self, encryption):
+        with libarchive.test_support.chdir(_APP_PATH):
+            output_path = tempfile.mkdtemp()
+
+            output_filename = 'archive.zip'
+            output_filepath = os.path.join(output_path, output_filename)
+            try:
+                files = [
+                    'libarchive/resources/README.rst',
+                    'libarchive/resources/requirements.txt',
+                ]
+                options = "zip:encryption={}".format(encryption)
+                libarchive.adapters.archive_write.create_file(
+                    output_filepath,
+                    libarchive.constants.ARCHIVE_FORMAT_ZIP,
+                    files,
+                    options=options,
+                    passphrase="test_passphrase")
+
+                assert \
+                    os.path.exists(output_filepath) is True, \
+                    "Test archive was not created correctly."
+
+                with libarchive.adapters.archive_read.file_enumerator(output_filepath, passphrase="test_passphrase") as e:
+                    actual = [entry.pathname for entry in e]
+
+            finally:
+                try:
+                    shutil.rmtree(output_path)
+                except:
+                    pass
+
+            expected = [
+                'libarchive/resources/README.rst',
+                'libarchive/resources/requirements.txt',
+            ]
+
+            self.assertEquals(actual, expected)
+

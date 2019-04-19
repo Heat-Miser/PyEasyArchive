@@ -11,6 +11,7 @@ import libarchive.calls.archive_read
 import libarchive.adapters.archive_entry
 import libarchive.adapters.archive_write_set_format
 import libarchive.adapters.archive_write_add_filter
+import libarchive.adapters.archive_write_set_passphrase
 import libarchive.types.archive_entry
 
 from libarchive.calls.archive_general import c_archive_error_string
@@ -80,6 +81,24 @@ def _archive_write_data(archive, data):
     if n == 0:
         message = c_archive_error_string(archive)
         raise ValueError("No bytes were written. Error? [%s]" % (message))
+
+def _archive_write_set_passphrase(archive, passphrase):
+    try:
+        passphrase = bytes(passphrase, 'utf-8')
+        return libarchive.calls.archive_write.c_archive_write_set_passphrase(
+                archive, passphrase)
+    except:
+        message = c_archive_error_string(archive)
+        raise libarchive.exception.ArchiveError(message)
+
+def _archive_write_set_options(archive, options):
+    try:
+        options = bytes(options, 'utf-8')
+        return libarchive.calls.archive_write.c_archive_write_set_options(
+                archive, options)
+    except:
+        message = c_archive_error_string(archive)
+        raise libarchive.exception.ArchiveError(message)
 
 def _archive_write_add_filter_bzip2(archive):
     try:
@@ -190,12 +209,18 @@ def _set_write_context(archive_res, format_code, filter_code=None):
 def _create(opener,
             format_code,
             files,
+            passphrase=None,
+            options="zip:encryption=zipcrypt",
             filter_code=None,
             block_size=16384):
     """Create an archive from a collection of files (not recursive)."""
 
     a = _archive_write_new()
     _set_write_context(a, format_code, filter_code)
+    if passphrase is not None and \
+       format_code == libarchive.constants.ARCHIVE_FORMAT_ZIP:
+        r = _archive_write_set_options(a, options)
+        r = _archive_write_set_passphrase(a, passphrase)
 
     _LOGGER.debug("Opening archive (create).")
     opener(a)

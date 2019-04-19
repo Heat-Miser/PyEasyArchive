@@ -22,6 +22,10 @@ c_archive_read_support_format_all = libarchive.archive_read_support_format_all
 c_archive_read_support_format_all.argtypes = [c_void_p]
 c_archive_read_support_format_all.restype = _check_zero_success
 
+c_archive_read_add_passphrase = libarchive.archive_read_add_passphrase
+c_archive_read_add_passphrase.argtypes = [c_void_p, c_char_p]
+c_archive_read_add_passphrase.restype = c_int
+
 c_archive_read_open_filename = libarchive.archive_read_open_filename
 c_archive_read_open_filename.argtypes = [c_void_p, c_char_p, c_size_t]
 c_archive_read_open_filename.restype = _check_zero_success

@@ -12,7 +12,7 @@ import libarchive.adapters.archive_read_append_filter
 import libarchive.adapters.archive_read_support_filter_all
 import libarchive.adapters.archive_read_set_format
 import libarchive.adapters.archive_read_support_format_all
-
+import libarchive.adapters.archive_read_add_passphrase
 from libarchive.calls.archive_general import c_archive_error_string
 
 _ASCII_ENCODING = 'ascii'
@@ -45,6 +45,14 @@ def _archive_read_support_format_all(archive):
     try:
         return libarchive.calls.archive_read.c_archive_read_support_format_all(
                 archive)
+    except:
+        message = c_archive_error_string(archive)
+        raise libarchive.exception.ArchiveError(message)
+
+def _archive_read_add_passphrase(archive, passphrase):
+    try:
+        return libarchive.calls.archive_read.c_archive_read_add_passphrase(
+                archive, passphrase)
     except:
         message = c_archive_error_string(archive)
         raise libarchive.exception.ArchiveError(message)
@@ -267,7 +275,7 @@ def _set_read_context(archive_res, format_code=None, filter_code=None):
             archive_read_support_filter_all(archive_res)
 
 @contextlib.contextmanager
-def _enumerator(opener, entry_cls, format_code=None, filter_code=None):
+def _enumerator(opener, entry_cls, passphrase=None, format_code=None, filter_code=None):
     """Return an archive enumerator from a user-defined source, using a user-
     defined entry type.
     """
@@ -275,6 +283,7 @@ def _enumerator(opener, entry_cls, format_code=None, filter_code=None):
     archive_res = _archive_read_new()
 
     try:
+        r = _archive_read_add_passphrase(archive_res, passphrase)
         r = _set_read_context(archive_res, format_code, filter_code)
         opener(archive_res)
 

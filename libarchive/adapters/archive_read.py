@@ -284,12 +284,8 @@ def _enumerator(opener, entry_cls, passphrase=None, format_code=None, filter_cod
     archive_res = _archive_read_new()
 
     try:
-<<<<<<< HEAD
         if passphrase is not None:
             r = _archive_read_add_passphrase(archive_res, passphrase)
-=======
-        r = _archive_read_add_passphrase(archive_res, passphrase)
->>>>>>> df8faa71bd33cc03fef1822d5160045f683bfe6c
         r = _set_read_context(archive_res, format_code, filter_code)
         opener(archive_res)
 
